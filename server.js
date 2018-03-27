@@ -25,6 +25,22 @@ const database = {
 };
 let id = 3;
 
+const matchId = (req, res, id) => {
+	let found = false;
+	database.users.forEach(user => {
+		if(user.id == id) {
+			found = true;
+			if(req.url === '/image') {
+				user.entries++;
+			} 
+			return res.json(user);
+		}
+	})
+	if(!found) {
+		res.status(400).json('User not found');
+	}
+};
+
 app.get('/', (req, res) => {
 	res.json(database.users);
 });
@@ -53,6 +69,16 @@ app.post('/signup', (req, res) => {
 	)
 	id++;
 	res.json(database.users[database.users.length - 1]);
+})
+
+app.get('/profile/:userId', (req, res) => {
+	const { userId } = req.params;
+	matchId(req, res, userId);
+}) 
+
+app.put('/image', (req, res) => {
+	const { id } = req.body;
+	matchId(req, res, id);
 })
 
 app.listen(3000, () => console.log('app is running on port 3000'));
