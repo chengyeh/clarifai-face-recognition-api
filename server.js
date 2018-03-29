@@ -86,7 +86,18 @@ app.get('/profile/:userId', (req, res) => {
 
 app.put('/image', (req, res) => {
 	const { id } = req.body;
-	matchId(req, res, id);
+	db('users')
+		.where('id', '=', id)
+		.increment('entries', 1)
+		.returning('entries')
+		.then(entries => {
+			if(entries.length) {
+				res.json(entries[0])
+			} else {
+				res.status(400).json('user not found');
+			}
+		})
+		.catch(err => res.status(400).json('error getting user'))
 })
 
 app.listen(3001, () => console.log('app is running on port 3001'));
