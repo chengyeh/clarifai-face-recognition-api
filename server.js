@@ -39,22 +39,6 @@ const database = {
 	]
 };
 
-const matchId = (req, res, id) => {
-	let found = false;
-	database.users.forEach(user => {
-		if(user.id == id) {
-			found = true;
-			if(req.url === '/image') {
-				user.entries++;
-			} 
-			return res.json(user);
-		}
-	})
-	if(!found) {
-		res.status(400).json('User not found');
-	}
-};
-
 app.get('/', (req, res) => {
 	res.json(database.users);
 });
@@ -88,7 +72,16 @@ app.post('/signup', (req, res) => {
 
 app.get('/profile/:userId', (req, res) => {
 	const { userId } = req.params;
-	matchId(req, res, userId);
+	db('users')
+	.where('id', userId)
+	.then(user => {
+		if(user.length) {
+			res.json(user[0]);
+		} else {
+			res.status(400).json('user not found');
+		}
+	})
+	.catch(err => res.status(400).json('error getting user'))
 }) 
 
 app.put('/image', (req, res) => {
