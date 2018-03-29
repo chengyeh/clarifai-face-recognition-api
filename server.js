@@ -2,6 +2,17 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const bcrypt = require('bcrypt-nodejs')
+const knex = require('knex')
+
+const db = knex({
+  client: 'pg',
+  connection: {
+    host : '127.0.0.1',
+    user : 'brianlee',
+    password : '',
+    database : 'face-recognition'
+  }
+});
 
 const app = express();
 app.use(bodyParser.json());
@@ -27,7 +38,6 @@ const database = {
 		}
 	]
 };
-let id = 3;
 
 const matchId = (req, res, id) => {
 	let found = false;
@@ -53,26 +63,27 @@ app.post('/signin', (req, res) => {
 	const { email, password } = req.body;
 	if(database.users[0].email === email && 
 	   database.users[0].password === password) {
-		res.json('Success')
+		res.json(database.users[0]);
 	} else {
 		res.status(400).json('User does not exist or enter the wrong password');
-	}
+	}u
 });
 
 app.post('/signup', (req, res) => {
 	const { name, email, password } = req.body;
-	database.users.push(
-		{
-			id: id,
-			name: name,
-			email: email,
-			// password: password,
-			entries: 0,
-			addedOn: new Date(),
-		}
-	)
-	id++;
-	res.json(database.users[database.users.length - 1]);
+	db('users')
+		.returning('*')
+		.insert(
+			{
+				name: name,
+				email: email,
+				addedon: new Date(),
+			}
+		)
+		.then(user => {
+			res.json(user[0]);
+		})
+		.catch(err => res.status(400).json('unable to sign up'));
 })
 
 app.get('/profile/:userId', (req, res) => {
@@ -85,4 +96,4 @@ app.put('/image', (req, res) => {
 	matchId(req, res, id);
 })
 
-app.listen(3001, () => console.log('app is running on port 3000'));
+app.listen(3001, () => console.log('app is running on port 3001'));
