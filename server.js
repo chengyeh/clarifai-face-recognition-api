@@ -66,7 +66,7 @@ app.post('/signup', (req, res) => {
 			id: id,
 			name: name,
 			email: email,
-			password: password,
+			// password: password,
 			entries: 0,
 			addedOn: new Date(),
 		}
