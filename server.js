@@ -55,19 +55,28 @@ app.post('/signin', (req, res) => {
 
 app.post('/signup', (req, res) => {
 	const { name, email, password } = req.body;
-	db('users')
-		.returning('*')
-		.insert(
-			{
-				name: name,
-				email: email,
-				addedon: new Date(),
-			}
-		)
-		.then(user => {
-			res.json(user[0]);
+
+	bcrypt.hash(password, null, null, function(err, hash) {
+    	// Store hash in the user table.
+    	db.transaction(trx => {
+			trx('login')
+				.insert({email, hash})
+				.returning('email')
+				.then(loginEmail => {
+					return trx('users')
+							.insert({
+								name,
+								email: loginEmail[0],
+								addedon: new Date()
+							})
+							.returning(['name', 'email'])
+							.then(user => res.json(user[0]))
+				})
+				.then(trx.commit)
+				.catch(trx.rollback)
 		})
 		.catch(err => res.status(400).json('unable to sign up'));
+	});
 })
 
 app.get('/profile/:userId', (req, res) => {
