@@ -18,39 +18,32 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-const database = {
-	users: [
-		{
-			id: 1,
-			name: 'Brian',
-			email: 'brian@gmail.com',
-			password: '1111',
-			entries: 0,
-			addedOn: new Date(),
-		},
-		{
-			id: 2,
-			name: 'Christina',
-			email: 'christina@gmail.com',
-			password: '2222',
-			entries: 0,
-			addedOn: new Date(),
-		}
-	]
-};
-
 app.get('/', (req, res) => {
 	res.json(database.users);
 });
 
 app.post('/signin', (req, res) => {
 	const { email, password } = req.body;
-	if(database.users[0].email === email && 
-	   database.users[0].password === password) {
-		res.json(database.users[0]);
-	} else {
-		res.status(400).json('User does not exist or enter the wrong password');
-	}u
+	db.select('*')
+		.from('login')
+		.where('email', email)
+		.then(logoinInfo => {
+			// Compare hash from the login table to the password user submit.
+			bcrypt.compare(password, logoinInfo[0].hash, function(err, isValid) {
+			    if(isValid) {
+			    	db.select('*')
+			    		.from('users')
+			    		.where('email', email)
+			    		.then(user => {
+			    			res.json(user[0]);
+			    		})
+			    		.catch(err => res.status(400).json('error getting user'));
+			    } else {
+			    	res.status(400).json(`email and password don't match`);
+			    }
+			});
+		})
+		.catch(err => res.status(400).json('error getting user'))
 });
 
 app.post('/signup', (req, res) => {
@@ -69,7 +62,7 @@ app.post('/signup', (req, res) => {
 								email: loginEmail[0],
 								addedon: new Date()
 							})
-							.returning(['name', 'email'])
+							.returning('*')
 							.then(user => res.json(user[0]))
 				})
 				.then(trx.commit)
@@ -101,7 +94,7 @@ app.put('/image', (req, res) => {
 		.returning('entries')
 		.then(entries => {
 			if(entries.length) {
-				res.json(entries[0])
+				res.json(Number(entries[0]));
 			} else {
 				res.status(400).json('user not found');
 			}
