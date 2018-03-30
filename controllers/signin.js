@@ -1,5 +1,11 @@
 const handleSignin = (bcrypt, db) => (req, res) => {
 	const { email, password } = req.body;
+	const emailValid = email.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i);
+	const passwordValid = password.length >= 6;
+
+	if(!emailValid || !passwordValid) {
+		return res.status(400).json('incorrect form input');
+	}
 
 	db.select('*')
 		.from('login')
