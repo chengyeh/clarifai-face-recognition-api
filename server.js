@@ -8,6 +8,8 @@ const signin = require('./controllers/signin');
 const profile = require('./controllers/profile');
 const image = require('./controllers/image');
 
+const PORT = process.env.PORT;
+
 const db = knex({
   client: 'pg',
   connection: {
@@ -26,10 +28,11 @@ app.get('/', (req, res) => {
 	res.json(database.users);
 });
 
+app.get('/', (req, res) => res.send('Successfully connected!'));
 app.post('/signin', signin.handleSignin(bcrypt, db));
 app.post('/signup', signup.handleSignup(bcrypt, db));
 app.get('/profile/:userId', profile.handleProfile(db)); 
 app.put('/image', image.handleImage(db));
 app.post('/callapi', image.handleApiCall);
 
-app.listen(3001, () => console.log('app is running on port 3001'));
+app.listen(PORT, () => console.log(`app is running on port ${PORT}`));
