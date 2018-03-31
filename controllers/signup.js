@@ -1,6 +1,10 @@
 const handleSignup = (bcrypt, db) => (req, res) => {
 	const { name, email, password } = req.body;
-	if(!name || !email || !password) {
+	const nameValid = name.match(/^[a-z ,.'-]+$/i);
+	const emailValid = email.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i);
+	const passwordValid = password.length >= 6;
+	
+	if(!nameValid || !emailValid || !passwordValid) {
 		return res.status(400).json('incorrect form input');
 	}
 
