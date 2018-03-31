@@ -1,5 +1,8 @@
 const handleSignup = (bcrypt, db) => (req, res) => {
 	const { name, email, password } = req.body;
+	if(!name || !email || !password) {
+		return res.status(400).json('incorrect form input');
+	}
 
 	bcrypt.hash(password, null, null, function(err, hash) {
     	// Store hash in the user table.
